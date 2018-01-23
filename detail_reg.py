@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 __author__ = 'k3v1n.Z'
-from detail_reg_gui import Ui_Form
+from gui.detail_reg_gui import Ui_Form
 from PyQt5 import QtWidgets,QtGui
 from PyQt5.QtCore import *
 import pymysql
@@ -16,6 +16,8 @@ class detail_reg(QtWidgets.QWidget,Ui_Form):
     def upload(self):
         name = self.name.text().strip()
         studentID = self.studentid.text().strip()
+        global userid
+        userid = studentID
         cardID = self.cardid.text().strip()
         major = self.major.text().strip()
 
@@ -24,11 +26,11 @@ class detail_reg(QtWidgets.QWidget,Ui_Form):
         classNo = self.classno.currentText()
 
         months = ['', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-        date = self.birthday.selectedDate()
-        themonth = date.toString()[4:7]
-        theday = date.toString()[8:9]
-        theyear = date.toString()[10:14]
-        birthday = theyear + '-' + str(months.index(themonth)) + '-' + theday
+        date = self.birthday.selectedDate().toString()[3:]
+        themonth = date[:date.index('月')]
+        theday = date[date.index('月') + 2:-5]
+        theyear = date[-4:]
+        birthday = theyear + '-' + themonth + '-' + theday
 
         conn = pymysql.connect('localhost', 'root', 'root','dissertation',charset='utf8')
         cur1 = conn.cursor()
@@ -43,7 +45,8 @@ class detail_reg(QtWidgets.QWidget,Ui_Form):
     def handle_click(self):
         if not self.isVisible():
             self.show()
-#
+
+
 # if __name__=='__main__':
 #     import sys
 #     app = QtWidgets.QApplication(sys.argv)

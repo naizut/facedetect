@@ -2,8 +2,10 @@
 # -*- coding: utf-8 -*-
 __author__ = 'k3v1n.Z'
 from PyQt5 import QtWidgets, QtGui,QtCore
-from facereg_gui import Ui_Form
+from gui.facereg_gui import Ui_Form
 from PyQt5.QtCore import *
+import os
+import gui.detail_reg
 import cv2
 cap = cv2.VideoCapture(0)
 
@@ -15,6 +17,7 @@ class facereg(QtWidgets.QWidget,Ui_Form):
         self.setWindowTitle('人脸识别学习 作者：Kevin.Z')
         self.setWindowIcon(QtGui.QIcon('icons/K.ico'))
         self.num = 0
+        self.path = 'D:/test/imgbase/'
         self.timer = QtCore.QTimer(self)
         self.timer.timeout.connect(self.showCamera)
         self.pushButton.setEnabled(False)
@@ -23,13 +26,12 @@ class facereg(QtWidgets.QWidget,Ui_Form):
         if self.num >= 10:
             self.pushButton.setEnabled(True)
         ret, frame = cap.read()  # show a frame
-        path = 'D:/test/'
         face_patterns = cv2.CascadeClassifier('D:/project/py/dissertation/haarcascade_frontalface_default.xml')
         faces = face_patterns.detectMultiScale(frame, scaleFactor=1.1, minNeighbors=5, minSize=(100, 100))
         if len(faces) > 0 and self.num<10:
             for (x, y, w, h) in faces:
                 square = frame[y:y + h, x:x + w]  # 反之则定位错位
-                cv2.imwrite(path + str(self.num) + 'face.jpg', square)
+                cv2.imwrite(self.path + gui.detail_reg.userid + '.jpg', square)
             self.num += 1
 
         for (x, y, w, h) in faces:
@@ -46,6 +48,20 @@ class facereg(QtWidgets.QWidget,Ui_Form):
         if not self.isVisible():
             self.show()
             self.showCamera()
+
+    def storePath(self):
+        import pymysql
+        conn = pymysql.connect('localhost', 'root', 'root', 'dissertation', charset='utf8')
+        cur1 = conn.cursor()
+
+        sql = "UPDATE `personal_info` SET `face`=(%s) WHERE studentID = (%s)"
+        cur1.execute(sql, (self.path + gui.detail_reg.userid + '.jpg', gui.detail_reg.userid))
+
+        conn.commit()
+        cur1.close()
+        conn.close()
+        from PyQt5.QtWidgets import QMessageBox
+        QMessageBox.information(self, "Facereg", "录入成功！")
 
     def releaseResource(self):
         cap.release()
